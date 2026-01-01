@@ -1,0 +1,20 @@
+{{ $content := .Content | default "" }}
+{{ if gt (len (findRE "language-mermaid" $content)) 0 }}
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!window.mermaid) return;
+      mermaid.initialize({ startOnLoad: false });
+
+      document.querySelectorAll("pre code.language-mermaid").forEach(function (codeBlock) {
+        const pre = codeBlock.parentElement;
+        const container = document.createElement("div");
+        container.className = "mermaid";
+        container.textContent = codeBlock.textContent;
+        pre.replaceWith(container);
+      });
+
+      mermaid.run({ querySelector: ".mermaid" });
+    });
+  </script>
+{{ end }}

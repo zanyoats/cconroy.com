@@ -1,0 +1,7 @@
+name = "Minimal Blog"
+license = "MIT"
+licenselink = "https://opensource.org/licenses/MIT"
+description = "A lightweight Hugo theme for learning"
+tags = ["blog", "minimal"]
+features = ["blog", "responsive", "syntax highlighting"]
+min_version = "0.120.0"

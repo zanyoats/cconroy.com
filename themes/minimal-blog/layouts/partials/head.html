@@ -1,0 +1,12 @@
+{{ $styles := resources.Get "css/main.css" | minify | fingerprint }}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ if .IsHome }}{{ .Site.Title }}{{ else if .Title }}{{ .Title }} | {{ .Site.Title }}{{ else }}{{ .Site.Title }}{{ end }}</title>
+<link rel="stylesheet" href="{{ $styles.RelPermalink }}" integrity="{{ $styles.Data.Integrity }}">
+<link rel="icon" href="{{ "favicon.svg" | relURL }}" type="image/svg+xml">
+{{ with .Site.GetPage "section" "notes" }}
+  {{ $notes := . }}
+  {{ with .OutputFormats.Get "RSS" }}
+    <link rel="alternate" type="application/rss+xml" title="{{ $notes.Title }} | {{ $.Site.Title }}" href="{{ .RelPermalink }}">
+  {{ end }}
+{{ end }}

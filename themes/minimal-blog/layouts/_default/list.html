@@ -1,0 +1,26 @@
+{{ define "main" }}
+  <section>
+    {{ if .Content }}
+      <div class="intro">
+        {{ .Content }}
+      </div>
+    {{ end }}
+    <ul class="post-list">
+      {{ range .Pages }}
+        {{ $summary := .Summary }}
+        {{ with .Params.summary }}
+          {{ $summary = . | markdownify }}
+        {{ end }}
+        <li>
+          <div class="post-meta">
+            <p class="post-date">{{ .Date.Format "2006-01-02" }}</p>
+            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+          </div>
+          <div class="summary">{{ $summary | safeHTML }}</div>
+        </li>
+      {{ else }}
+        <li>No notes yet — create one with <code>hugo new notes/my-first-note.md</code>.</li>
+      {{ end }}
+    </ul>
+  </section>
+{{ end }}

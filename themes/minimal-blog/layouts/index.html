@@ -1,0 +1,28 @@
+{{ define "main" }}
+  <section>
+    <ul class="post-list">
+      {{ $notes := where .Site.RegularPages "Type" "notes" }}
+      {{ $paginator := .Paginate $notes }}
+      {{ range $paginator.Pages }}
+        {{ $summary := .Summary }}
+        {{ with .Params.summary }}
+          {{ $summary = . | markdownify }}
+        {{ end }}
+        <li>
+          <div class="post-meta">
+            <p class="post-date">{{ .Date.Format "2006-01-02" }}</p>
+            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+          </div>
+          <div class="summary">{{ $summary | safeHTML }}</div>
+        </li>
+      {{ else }}
+        <li>Create your first note with <code>hugo new notes/my-first-note.md</code>.</li>
+      {{ end }}
+    </ul>
+    {{ if gt $paginator.TotalPages 1 }}
+      {{ with .Site.GetPage "section" "notes" }}
+        <p><a href="{{ .RelPermalink }}">all notes</a></p>
+      {{ end }}
+    {{ end }}
+  </section>
+{{ end }}

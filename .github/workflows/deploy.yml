@@ -1,0 +1,71 @@
+name: Deploy Hugo to Vultr
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-hugo
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: latest
+          extended: true
+
+      - name: Build site
+        run: hugo --minify
+
+      - name: Deploy via rsync
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOY_USER}" ] || [ -z "${DEPLOY_HOST}" ] || [ -z "${DEPLOY_KEY}" ]; then
+            echo "Missing required deploy secrets. Please set DEPLOY_USER, DEPLOY_HOST, and DEPLOY_KEY."
+            exit 1
+          fi
+
+          SSH_PORT="${DEPLOY_PORT:-22}"
+          TARGET_PATH="${DEPLOY_PATH:-/usr/share/nginx/html}"
+          SSH_OPTS="-4 -p ${SSH_PORT} -o StrictHostKeyChecking=accept-new"
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${DEPLOY_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Reachability check before keyscan to surface firewall/port issues early.
+          if ! nc -4 -z -w 5 "${DEPLOY_HOST}" "${SSH_PORT}"; then
+            echo "Cannot reach ${DEPLOY_HOST}:${SSH_PORT} from runner (firewall/port?)."
+            exit 1
+          fi
+
+          if ! ssh-keyscan -4 -T 15 -p "${SSH_PORT}" -- "${DEPLOY_HOST}" >> ~/.ssh/known_hosts; then
+            echo "ssh-keyscan failed. Check DEPLOY_HOST/DEPLOY_PORT, firewall, and SSH service."
+            exit 1
+          fi
+
+          if ! ssh ${SSH_OPTS} "${DEPLOY_USER}@${DEPLOY_HOST}" "test -d '${TARGET_PATH}' && test -w '${TARGET_PATH}'"; then
+            echo "Cannot write to ${TARGET_PATH} as ${DEPLOY_USER}. Fix permissions or set DEPLOY_PATH."
+            exit 1
+          fi
+
+          rsync -rlvz --delete --omit-dir-times --no-owner --no-group -e "ssh ${SSH_OPTS}" public/ "${DEPLOY_USER}@${DEPLOY_HOST}:${TARGET_PATH}"

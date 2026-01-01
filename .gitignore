@@ -1,0 +1,20 @@
+# Hugo build output
+public/
+resources/
+hugo_stats.json
+
+# Hugo cache/lock
+.hugo_build.lock
+
+# Dependency/build artifacts
+node_modules/
+*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+.vultr/

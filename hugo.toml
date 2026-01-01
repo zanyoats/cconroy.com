@@ -1,0 +1,22 @@
+baseURL = 'http://cconroy.com/'
+languageCode = 'en-us'
+title = 'cconroy.com | home'
+theme = 'minimal-blog'
+
+[params]
+copyrightedBy = 'Charles Conroy'
+lead = 'programming & other things'
+alternateTitle = "home"
+
+[pagination]
+pagerSize = 5
+
+[markup.highlight]
+noClasses = false
+
+[outputs]
+home = ['HTML', 'RSS']
+section = ['HTML', 'RSS']
+
+[outputFormats.RSS]
+baseName = 'rss'

@@ -1,0 +1,16 @@
+{{- $scratch := newScratch -}}
+{{- $scratch.Set "year" now.Year -}}
+{{- $scratch.Set "result" "" -}}
+{{- $values := slice 1000 900 500 400 100 90 50 40 10 9 5 4 1 -}}
+{{- $symbols := slice "M" "CM" "D" "CD" "C" "XC" "L" "XL" "X" "IX" "V" "IV" "I" -}}
+{{- range $i, $v := $values -}}
+  {{- $year := $scratch.Get "year" -}}
+  {{- $count := div $year $v -}}
+  {{- if gt $count 0 -}}
+    {{- range seq $count -}}
+      {{- $scratch.Set "result" (printf "%s%s" ($scratch.Get "result") (index $symbols $i)) -}}
+    {{- end -}}
+    {{- $scratch.Set "year" (mod $year $v) -}}
+  {{- end -}}
+{{- end -}}
+{{- $scratch.Get "result" -}}

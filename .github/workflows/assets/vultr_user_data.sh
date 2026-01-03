@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+exec > /var/log/user-data.log 2>&1
+echo "user-data start: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 # This script sets up a new user with passwordless SSH login and sudo privileges on Alpine Linux.
 # It installs sudo and openssh, creates a new user (defaulting to "charlie" if no username is provided),
 # removes the user’s password (so only key authentication is allowed), adds the user to the wheel group,
@@ -8,6 +10,25 @@ set -eu
 
 # Install sudo and openssh
 apk add --no-cache sudo ufw openssh rsync curl ca-certificates acl shadow
+
+# Set username (defaults to "charlie" if no argument is provided)
+USER_NAME=${1:-charlie}
+
+# Create the new user with default settings (no password prompt)
+adduser -D "$USER_NAME"
+
+# Remove the user's password to enforce passwordless login
+passwd -d "$USER_NAME"
+
+# Add the new user to the wheel group for sudo privileges
+adduser "$USER_NAME" wheel
+
+## The following line in /etc/sudoers enables passwordless sudo for wheel users:
+## # %wheel ALL=(ALL:ALL) NOPASSWD: ALL
+# Uncomment it if it is present.
+if grep -q "^# *%wheel ALL=(ALL:ALL) NOPASSWD: ALL" /etc/sudoers; then
+  sed -i 's/^# *\(%wheel ALL=(ALL:ALL) NOPASSWD: ALL\)/\1/' /etc/sudoers
+fi
 
 # Set up SSH authorized_keys for the user
 USER_HOME=$(getent passwd "$USER_NAME" | cut -d: -f6)
@@ -30,25 +51,6 @@ ufw allow https
 ufw --force enable
 rc-service ufw start
 rc-update add ufw default
-
-# Set username (defaults to "charlie" if no argument is provided)
-USER_NAME=${1:-charlie}
-
-# Create the new user with default settings (no password prompt)
-adduser -D "$USER_NAME"
-
-# Remove the user's password to enforce passwordless login
-passwd -d "$USER_NAME"
-
-# Add the new user to the wheel group for sudo privileges
-adduser "$USER_NAME" wheel
-
-## The following line in /etc/sudoers enables passwordless sudo for wheel users:
-## # %wheel ALL=(ALL:ALL) NOPASSWD: ALL
-# Uncomment it if it is present.
-if grep -q "^# *%wheel ALL=(ALL:ALL) NOPASSWD: ALL" /etc/sudoers; then
-  sed -i 's/^# *\(%wheel ALL=(ALL:ALL) NOPASSWD: ALL\)/\1/' /etc/sudoers
-fi
 
 printf "%s%s%s%s\n" \
     "@nginx " \
@@ -79,3 +81,5 @@ printf '%s' "${SITE_CONF_B64}" | base64 -d > /etc/nginx/conf.d/default.conf
 rc-service nginx start
 
 rc-update add nginx default
+
+echo "user-data ok: $(date -u +%Y-%m-%dT%H:%M:%SZ)" > /var/log/user-data.ok

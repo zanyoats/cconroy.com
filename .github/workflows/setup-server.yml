@@ -139,12 +139,12 @@ jobs:
               os_id: ($os_id | tonumber),
               user_data: $user_data
             }
-            + ( $label | length > 0 ? {label: $label} : {} )
-            + ( $hostname | length > 0 ? {hostname: $hostname} : {} )
-            + ( $sshkey_id | length > 0 ? {sshkey_id: [$sshkey_id]} : {} )
-            + ( $firewall_group_id | length > 0 ? {firewall_group_id: $firewall_group_id} : {} )
-            + ( $tag | length > 0 ? {tags: [$tag]} : {} )
-            + ( $enable_ipv6 == "true" ? {enable_ipv6: true} : {} )
+            + (if ($label | length) > 0 then {label: $label} else {} end)
+            + (if ($hostname | length) > 0 then {hostname: $hostname} else {} end)
+            + (if ($sshkey_id | length) > 0 then {sshkey_id: [$sshkey_id]} else {} end)
+            + (if ($firewall_group_id | length) > 0 then {firewall_group_id: $firewall_group_id} else {} end)
+            + (if ($tag | length) > 0 then {tags: [$tag]} else {} end)
+            + (if $enable_ipv6 == "true" then {enable_ipv6: true} else {} end)
             ')"
 
           response="$(curl -sS -X POST "https://api.vultr.com/v2/instances" \

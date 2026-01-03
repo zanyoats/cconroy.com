@@ -1,0 +1,193 @@
+name: Setup Vultr VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: Vultr region
+        type: choice
+        required: true
+        options:
+          - "ewr" # New Jersey
+      plan:
+        description: Vultr plan ID
+        type: choice
+        required: true
+        options:
+          - "vc2-1c-2gb" # 1 vCPU, 2 GB RAM
+      os_id:
+        description: Vultr OS ID
+        type: choice
+        required: true
+        options:
+          - "2076" # Alpine Linux x64
+      firewall_group_id:
+        description: Vultr firewall group ID
+        type: choice
+        required: true
+        options:
+          - "4f0c0763-36a1-485f-abf6-e8a51ea623e7"
+      label:
+        description: Instance label
+        required: false
+      hostname:
+        description: Instance hostname
+        required: false
+      sshkey_id:
+        description: Vultr SSH key ID (overrides VULTR_SSHKEY_ID)
+        required: false
+      tag:
+        description: Optional tag to apply
+        required: false
+      enable_ipv6:
+        description: Enable IPv6 (true/false)
+        required: false
+        default: "false"
+      update_variable:
+        description: Update repo variable DEPLOY_HOST with new IP
+        required: false
+        default: "true"
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    outputs:
+      public_ip: ${{ steps.provision.outputs.public_ip }}
+      instance_id: ${{ steps.provision.outputs.instance_id }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Provision Vultr instance
+        id: provision
+        env:
+          VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+          REGION: ${{ inputs.region }}
+          PLAN: ${{ inputs.plan }}
+          OS_ID: ${{ inputs.os_id }}
+          FIREWALL_GROUP_ID: ${{ inputs.firewall_group_id }}
+          LABEL: ${{ inputs.label || format('cconroy-www-{0}', github.run_id) }}
+          HOSTNAME: ${{ inputs.hostname || format('cconroy-www-{0}', github.run_id) }}
+          SSHKEY_ID: ${{ inputs.sshkey_id || vars.VULTR_SSHKEY_ID }}
+          TAG: ${{ inputs.tag || vars.VULTR_TAG }}
+          ENABLE_IPV6: ${{ inputs.enable_ipv6 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${VULTR_API_KEY:-}" ]; then
+            echo "Missing VULTR_API_KEY secret."
+            exit 1
+          fi
+
+          if [ -z "${SSH_PUBLIC_KEY:-}" ]; then
+            echo "Missing SSH_PUBLIC_KEY repo variable."
+            exit 1
+          fi
+
+          USER_DATA_TEMPLATE=".github/workflows/assets/vultr_user_data.sh"
+          if [ ! -f "${USER_DATA_TEMPLATE}" ]; then
+            echo "Missing ${USER_DATA_TEMPLATE} in repo."
+            exit 1
+          fi
+          SITE_CONF_TEMPLATE=".github/workflows/assets/site.conf"
+          if [ ! -f "${SITE_CONF_TEMPLATE}" ]; then
+            echo "Missing ${SITE_CONF_TEMPLATE} in repo."
+            exit 1
+          fi
+
+          ENABLE_IPV6="$(echo "${ENABLE_IPV6:-false}" | tr '[:upper:]' '[:lower:]')"
+
+          SITE_CONF_B64="$(base64 -w 0 "${SITE_CONF_TEMPLATE}" 2>/dev/null || base64 "${SITE_CONF_TEMPLATE}" | tr -d '\n')"
+          USER_DATA_RENDERED="$(mktemp)"
+          if ! grep -q "__SSH_PUBLIC_KEY__" "${USER_DATA_TEMPLATE}"; then
+            echo "Missing __SSH_PUBLIC_KEY__ placeholder in ${USER_DATA_TEMPLATE}."
+            exit 1
+          fi
+          if ! grep -q "__SITE_CONF_B64__" "${USER_DATA_TEMPLATE}"; then
+            echo "Missing __SITE_CONF_B64__ placeholder in ${USER_DATA_TEMPLATE}."
+            exit 1
+          fi
+
+          escaped_key="$(printf '%s' "${SSH_PUBLIC_KEY}" | sed -e 's/[&|\\]/\\&/g')"
+          escaped_site_conf="$(printf '%s' "${SITE_CONF_B64}" | sed -e 's/[&|\\]/\\&/g')"
+          sed -e "s|__SSH_PUBLIC_KEY__|${escaped_key}|" \
+            -e "s|__SITE_CONF_B64__|${escaped_site_conf}|" \
+            "${USER_DATA_TEMPLATE}" > "${USER_DATA_RENDERED}"
+
+          USER_DATA_B64="$(base64 -w 0 "${USER_DATA_RENDERED}" 2>/dev/null || base64 "${USER_DATA_RENDERED}" | tr -d '\n')"
+
+          payload="$(jq -n \
+            --arg region "${REGION}" \
+            --arg plan "${PLAN}" \
+            --arg os_id "${OS_ID}" \
+            --arg firewall_group_id "${FIREWALL_GROUP_ID}" \
+            --arg label "${LABEL}" \
+            --arg hostname "${HOSTNAME}" \
+            --arg sshkey_id "${SSHKEY_ID}" \
+            --arg tag "${TAG}" \
+            --arg enable_ipv6 "${ENABLE_IPV6}" \
+            --arg user_data "${USER_DATA_B64}" \
+            '{
+              region: $region,
+              plan: $plan,
+              os_id: ($os_id | tonumber),
+              user_data: $user_data
+            }
+            + ( $label | length > 0 ? {label: $label} : {} )
+            + ( $hostname | length > 0 ? {hostname: $hostname} : {} )
+            + ( $sshkey_id | length > 0 ? {sshkey_id: [$sshkey_id]} : {} )
+            + ( $firewall_group_id | length > 0 ? {firewall_group_id: $firewall_group_id} : {} )
+            + ( $tag | length > 0 ? {tags: [$tag]} : {} )
+            + ( $enable_ipv6 == "true" ? {enable_ipv6: true} : {} )
+            ')"
+
+          response="$(curl -sS -X POST "https://api.vultr.com/v2/instances" \
+            -H "Authorization: Bearer ${VULTR_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "${payload}")"
+
+          instance_id="$(echo "${response}" | jq -r '.instance.id // empty')"
+          if [ -z "${instance_id}" ]; then
+            echo "Failed to create instance. Response:"
+            echo "${response}"
+            exit 1
+          fi
+
+          echo "instance_id=${instance_id}" >> "${GITHUB_OUTPUT}"
+
+          public_ip=""
+          for attempt in $(seq 1 60); do
+            info="$(curl -sS "https://api.vultr.com/v2/instances/${instance_id}" \
+              -H "Authorization: Bearer ${VULTR_API_KEY}")"
+            public_ip="$(echo "${info}" | jq -r '.instance.main_ip // empty')"
+            status="$(echo "${info}" | jq -r '.instance.status // empty')"
+
+            if [ -n "${public_ip}" ] && [ "${public_ip}" != "0.0.0.0" ]; then
+              break
+            fi
+
+            echo "Waiting for IP (attempt ${attempt}, status=${status:-unknown})..."
+            sleep 10
+          done
+
+          if [ -z "${public_ip}" ] || [ "${public_ip}" = "0.0.0.0" ]; then
+            echo "Timed out waiting for public IP."
+            exit 1
+          fi
+
+          echo "public_ip=${public_ip}" >> "${GITHUB_OUTPUT}"
+          echo "::notice title=Vultr IP::${public_ip}"
+          echo "Public IP: ${public_ip}"
+
+      - name: Update deploy host variable
+        if: ${{ inputs.update_variable == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh variable set DEPLOY_HOST --repo "${GITHUB_REPOSITORY}" --body "${{ steps.provision.outputs.public_ip }}"

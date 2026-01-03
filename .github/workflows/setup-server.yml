@@ -185,9 +185,16 @@ jobs:
           echo "::notice title=Vultr IP::${public_ip}"
           echo "Public IP: ${public_ip}"
 
-      - name: Update deploy host variable
-        if: ${{ inputs.update_variable == 'true' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Write provisioning summary
+        if: ${{ always() }}
         run: |
-          gh variable set DEPLOY_HOST --repo "${GITHUB_REPOSITORY}" --body "${{ steps.provision.outputs.public_ip }}"
+          {
+            echo "## Vultr Provisioning"
+            echo ""
+            echo "- Instance ID: ${{ steps.provision.outputs.instance_id }}"
+            echo "- Public IP: ${{ steps.provision.outputs.public_ip }}"
+            echo "- Region: ${{ inputs.region }}"
+            echo "- Plan: ${{ inputs.plan }}"
+            echo "- OS ID: ${{ inputs.os_id }}"
+            echo "- Firewall Group: ${{ inputs.firewall_group_id }}"
+          } >> "${GITHUB_STEP_SUMMARY}"

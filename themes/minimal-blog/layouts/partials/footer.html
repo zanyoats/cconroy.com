@@ -3,10 +3,13 @@
     <ul class="footer-list">
       <li class="footer-item">&copy; {{ partial "roman-year.html" . }} {{ .Site.Params.copyrightedBy }}</li>
       <li class="footer-item"><a href="{{ .Site.Home.RelPermalink }}">home</a></li>
+      {{ with .Site.GetPage "taxonomyTerm" "tags" }}
+        <li class="footer-item"><a href="{{ .RelPermalink }}">tags</a></li>
+      {{ end }}
       {{ with .Site.GetPage "section" "notes" }}
         {{ $notes := . }}
         {{ with .OutputFormats.Get "RSS" }}
-          <li class="footer-item"><a href="{{ .RelPermalink }}">rss</a> feed</li>
+          <li class="footer-item"><a href="{{ .RelPermalink }}">rss</a></li>
         {{ end }}
       {{ end }}
     </ul>

@@ -14,9 +14,14 @@ pagerSize = 5
 [markup.highlight]
 noClasses = false
 
+[taxonomies]
+tag = "tags"
+
 [outputs]
 home = ['HTML', 'RSS']
 section = ['HTML', 'RSS']
+taxonomy = ["HTML", "RSS"]
+term = ["HTML", "RSS"]
 
 [outputFormats.RSS]
 baseName = 'rss'

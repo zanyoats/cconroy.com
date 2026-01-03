@@ -1,5 +1,6 @@
 {{ define "main" }}
   <section>
+    <h1>{{ .Title }}</h1>
     {{ if .Content }}
       <div class="intro">
         {{ .Content }}
@@ -14,9 +15,18 @@
         <li>
           <div class="post-meta">
             <p class="post-date">{{ .Date.Format "2006-01-02" }}</p>
-            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+            <div class="post-title-row">
+              <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+            </div>
           </div>
           <div class="summary">{{ $summary | safeHTML }}</div>
+          {{ with .Params.tags }}
+            <div class="post-tags-row">
+              {{ range $index, $tag := . }}
+                {{ if $index }} {{ end }}<a href="{{ (printf "/tags/%s/" (urlize $tag)) | relURL }}">#{{ $tag | lower }}</a>
+              {{ end }}
+            </div>
+          {{ end }}
         </li>
       {{ else }}
         <li>No notes yet — create one with <code>hugo new notes/my-first-note.md</code>.</li>

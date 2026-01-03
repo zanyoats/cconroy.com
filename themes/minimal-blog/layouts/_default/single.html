@@ -6,6 +6,13 @@
           <li class="post-header-item"><span class="post-title">{{ .Title }}</span></li>
           <li class="post-header-item"><span class="post-date">{{ .Date.Format "2006-01-02" }}</span></li>
         </ul>
+        {{ with .Params.tags }}
+          <p class="post-tags-row">
+            {{ range $index, $tag := . }}
+              {{ if $index }} {{ end }}<a href="{{ (printf "/tags/%s/" (urlize $tag)) | relURL }}">#{{ $tag | lower }}</a>
+            {{ end }}
+          </p>
+        {{ end }}
       {{ else }}
         <p class="post-title">{{ .Title }}</p>
       {{ end }}

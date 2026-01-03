@@ -149,15 +149,20 @@ h2,
 h3 {
   line-height: 1.2;
   font-weight: 600;
+  color: var(--muted);
+  text-transform: lowercase;
 }
 
 h1 {
-  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-size: 1.5rem;
 }
 
 h2 {
-  margin-top: 2.5rem;
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-size: 1.2rem;
+}
+
+h3 {
+  font-size: 1.0rem;
 }
 
 p {
@@ -264,16 +269,36 @@ pre code {
   column-gap: var(--post-gap);
   row-gap: 0.4rem;
   align-items: baseline;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.85rem;
 }
 
 .post-list .post-meta {
   display: contents;
 }
 
-.post-list .post-meta a {
+.post-list .post-title-row {
   grid-column: 2;
-  align-self: baseline;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.post-list .post-title-row > a {
+  flex: 0 0 auto;
+}
+
+.post-tags-row {
+  grid-column: 2;
+  margin: 0.15rem 0 0;
+  font-size: 1.0rem;
+  word-spacing: 0.20em;
+}
+
+.post-tags-row a {
+  color: var(--link);
+  font-size: inherit;
+  letter-spacing: 0;
 }
 
 .post-list .post-date {
@@ -374,6 +399,40 @@ pre code {
   margin-top: 0;
 }
 
+
+.tag-list {
+  list-style: none;
+  padding: 0;
+  /* margin: 1rem 0 0; */
+}
+
+.tag-item {
+  margin: 0.7rem 0;
+}
+
+.tag-name {
+  letter-spacing: 0.02em;
+}
+
+.tag-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.tag-count {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tag-rss {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
 article header {
   margin-bottom: 1.5rem;
 }
@@ -399,9 +458,10 @@ article header {
     row-gap: 0.2rem;
   }
 
-  .post-list .post-meta a,
+  .post-list .post-title-row,
   .post-list .post-date,
-  .post-list .summary {
+  .post-list .summary,
+  .post-tags-row {
     grid-column: 1;
   }
 

@@ -1,0 +1,25 @@
+{{ define "main" }}
+  <section>
+    <h1>{{ .Title | lower }}</h1>
+    {{ if .Content }}
+      <div class="intro">
+        {{ .Content }}
+      </div>
+    {{ end }}
+    <ul class="tag-list">
+      {{ range .Data.Terms.Alphabetical }}
+        <li class="tag-item">
+          <div class="tag-row">
+            <a class="tag-name" href="{{ .Page.RelPermalink }}">{{ .Page.Title | lower }}</a>
+            <span class="tag-count">({{ .Count }})</span>
+            {{ with .Page.OutputFormats.Get "RSS" }}
+              <span class="tag-rss">(<a href="{{ .RelPermalink }}">rss</a>)</span>
+            {{ end }}
+          </div>
+        </li>
+      {{ else }}
+        <li>No tags yet.</li>
+      {{ end }}
+    </ul>
+  </section>
+{{ end }}

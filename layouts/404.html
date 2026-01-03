@@ -1,0 +1,12 @@
+{{ define "main" }}
+  <section>
+    <h1>404</h1>
+    <p class="lead">Page not found.</p>
+    <p>
+      Try the <a href="{{ "/" | relURL }}">homepage</a>
+      {{ with .Site.GetPage "section" "notes" }}
+        or <a href="{{ .RelPermalink }}">notes</a>
+      {{ end }}.
+    </p>
+  </section>
+{{ end }}

@@ -25,7 +25,7 @@ As a reference, the [little_typer_dialog.pie](little_typer_dialog.pie) is the co
 1. [Chapter 14: The Absurd Type](#chapter-14-the-absurd-type)
 1. [Chapters 15-16: CL = IL + DNE](#chapters-15-16-cl--il--dne)
 
-### Chapters 1-2: Getting Definitions Down
+# Chapters 1-2: Getting Definitions Down
 
 In the preface, the text mentions what is meant by **Laws** and **Commandments**. It's worth spending some time to digest these terms before proceeding. You will need to do as such in the first few chapters since much of this text relies on understanding the precise meanings of its definitions. But don't sway into thinking this is an intractable computer science monograph on type theory--it strikes a good balance between not being too academic and still allowing you to swim in the deep end of the pool. Very much living up to its playful artwork and cover.
 
@@ -107,7 +107,7 @@ Lastly, some of the examples use the `+` operator. This will be defined in futur
 
 [top](#)
 
-### Chapter 3: What is a Proof, What is a Value
+# Chapter 3: What is a Proof, What is a Value
 
 There is a subtle connection between computation and traditional mathematical logic:
 
@@ -142,7 +142,7 @@ Pie resolves this fatal flaw by disallowing recursion in this manner. With this 
 
 [top](#)
 
-### Chapter 4: ->'s Stronger Brother Pi
+# Chapter 4: ->'s Stronger Brother Pi
 
 Our friend `->` has already been used to type lambdas. But now we get introduced to `Pi`, which gives us what other languages call generics. With it, we can now define an eliminator for the generic `(Pair A D)` where `A` and `D` are any types in `U`:
 
@@ -167,7 +167,7 @@ which describes some lambda expression. Something `->` was not able to do on its
 
 [top](#)
 
-### Chapters 5-6: Lists and Vectors
+# Chapters 5-6: Lists and Vectors
 
 If we wanted to create list of things and we only know about pairs one way to encode this (tediously) is:
 
@@ -266,7 +266,7 @@ Now `first` is total, since it works on all vectors of at least one element.
 
 [top](#)
 
-### Chapter 7: ind-Nat is a Dependent rec-Nat
+# Chapter 7: ind-Nat is a Dependent rec-Nat
 
 We meet `ind-Nat` for when `rec-Nat` is not up to the task. The trivial example to motivate us quickly is: building a vec of atoms with a particular length in mind. `rec-Nat` is not capable of implementing this simple program since it cannot vary the types depending on the target:
 
@@ -296,7 +296,7 @@ We have come a long way since `which-Nat`. `iter-Nat` was needed when `which-Nat
 
 [top](#)
 
-### Chapters 8-9: Proving Properties About Programs
+# Chapters 8-9: Proving Properties About Programs
 
 The difficulty ramps up a bit in these chapters. The type constructor equals (i.e. `=`) is introduced along with its `same` constructor and a cadre of eliminators: `cong`, `replace`, and `symm`. `same` is a way to construct evidence for an expression, which is what is needed at the base case of induction. During each step of the induction we need eliminators to construct `evidence_k` from given `evidence_k-1`. If we can achieve this we have `evidence_n`, or proof of the statement the type encodes. 
 
@@ -349,7 +349,7 @@ The example to implement `twice-Vec` should clear up `replace`, and what purpose
 
 [top](#)
 
-### Chapters 10-11: Induction on Lists and Vecs
+# Chapters 10-11: Induction on Lists and Vecs
 
 We are introduced to a new type constructor: `Sigma` -- which encodes the _there exists_ operator from classical logic. As a recap we can now say the following in Pie's type system:
 
@@ -401,7 +401,7 @@ We proceed to make a definition for `list->vec->list=`, which is proof that the 
 
 [top](#)
 
-### Chapters 12-13: Even and Odd
+# Chapters 12-13: Even and Odd
 
 These chapters don't introduce any new concepts (except `(Either L R)`), but build on our knowledge to develop the dependent types: `(Even n)` and `(Odd n)`. We proceed to prove very simple properties about even and odd numbers:
 
@@ -427,7 +427,7 @@ In theory, you can now employ these types in programs. For example, you could wa
 
 [top](#)
 
-### Chapter 14: The Absurd Type
+# Chapter 14: The Absurd Type
 
 If the type `Trivial` has one value, then what type has zero values? `Absurd` does; a program with a type that has `Absurd` in it cannot be defined. Strangely, it does have an eliminator (no constructor) in `ind-Absurd`, but this is to satisfy the type checker in expressions. A clever demonstration of this is in defining `vec-ref`. The types involved here are rather complex. But we want a vector of length 0 to have no 2 index position in `(vec-ref Atom 0 2 vecnil)`, and `Absurd` will work here to let the compiler flag this as an error. Getting the head position of a vector of length 2 should be no problem and return `Atom`: `(vec-ref Atom 2 0 vec-of-len-2)`.
 
@@ -480,7 +480,7 @@ Finally, the step uses this representation and `ind-Either` to decide on whether
 
 [top](#)
 
-### Chapters 15-16: CL = IL + DNE
+# Chapters 15-16: CL = IL + DNE
 
 Expressing _refutation of P_ or _not P_ was our last remaining logical analog. We can now express that `(+ 2 2)` does not equal `5` as a type:
 

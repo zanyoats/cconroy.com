@@ -3,7 +3,7 @@ date = '2026-01-01T10:22:29-05:00'
 draft = false
 title = 'chapter notes for the little typer'
 summary = 'These notes serve as an addendum to each chapter. I wish I had these notes alongside each chapter while working through the book.'
-tags = ['programming', 'types', 'book-reviews']
+tags = ['programming', 'types', 'books']
 +++
 
 {{< figure src="9780262536431.avif" class="note-right" link="https://mitpress.mit.edu/9780262536431/the-little-typer/" caption="[the little typer](https://mitpress.mit.edu/9780262536431/the-little-typer/), by MIT Press" >}}

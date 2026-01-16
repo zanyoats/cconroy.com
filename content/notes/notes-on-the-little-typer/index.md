@@ -4,26 +4,29 @@ draft = false
 title = 'chapter notes for the little typer'
 summary = 'These notes serve as an addendum to each chapter. I wish I had these notes alongside each chapter while working through the book.'
 tags = ['programming', 'types', 'books']
+toc_sidebar = true
+custom_toc = """[review](#review)
+[getting definitions down](#chapters-1-2-getting-definitions-down)
+[what is a proof, what is a value](#chapter-3-what-is-a-proof-what-is-a-value)
+[->'s stronger brother pi](#chapter-4--s-stronger-brother-pi)
+[lists and vectors](#chapters-5-6-lists-and-vectors)
+[ind-nat is a dependent rec-nat](#chapter-7-ind-nat-is-a-dependent-rec-nat)
+[proving properties about programs](#chapters-8-9-proving-properties-about-programs)
+[induction on lists and vecs](#chapters-10-11-induction-on-lists-and-vecs)
+[even and odd](#chapters-12-13-even-and-odd)
+[the absurd type](#chapter-14-the-absurd-type)
+[cl = il + dne](#chapters-15-16-cl--il--dne)"""
 +++
+
+# review
 
 {{< figure src="9780262536431.avif" class="note-right" link="https://mitpress.mit.edu/9780262536431/the-little-typer/" caption="[the little typer](https://mitpress.mit.edu/9780262536431/the-little-typer/), by MIT Press" >}}
 
-That was quite the odyssey into the arcane realm of dependent types. At the outset, I was not interested in the logic itself, but in the power it can confer on programming languages. The types constructed are much more expressive than we see in traditional statically typed languages, à la Java, C/C++, OCAML, Scala, and Haskell. In dependently typed languages, construction can be interpreted as a form of proof--that is, finding a program P with type T is proof of the logical statement that T encodes. Claiming T is all fine and good, but proving it requires finding a program that the compiler accepts.
+That was quite the odyssey into the arcane realm of dependent types. At the outset, I was not interested in the logic itself, but in the power it can confer. The types constructed are much more expressive than we see in traditional statically typed languages, à la Java, C/C++, OCAML, Scala, and Haskell. In dependently typed languages, construction can be interpreted as a form of proof--that is, finding a program P with type T is proof of the logical statement that T encodes. Claiming T is all fine and good, but proving it requires finding a program that the compiler accepts.
 
-That might be the paradigm shift this type of language makes. But as good as this sounds, they might not be practical for most programming needs. They probably don't scale well when developing much larger programs like OSes, games, browsers, etc. Additionally, on the other end of the spectrum, they are not worth the time for simple scripts. Nevertheless, they are worth knowing about. If you want to proceed further down the rabbit hole, graduating to more advanced dependently-typed languages used for making real programs, then roughly, there seems to be two paths: (1) developing runnable programs, and proving properties about them, or (2) developing theorems just to prove them; essentially doing mathematics with machine-checked proofs. Idris has positioned itself for the former with Roq/Lean/Agda purpose-built for the latter. For me, looking into Idris would be a next step--at least just to see what real programs are being built using this newfound knowledge.
+That might be the paradigm shift these type of languages make. But as good as this sounds, they might not be practical for most programming needs. They probably don't scale well when developing much larger programs like OSes, games, browsers, etc. Additionally, on the other end of the spectrum, they are not worth the time for simple scripts. Nevertheless, they are worth knowing about. If you want to proceed further down the rabbit hole, graduating to more advanced dependently-typed languages used for making real programs, then roughly, there seems to be two paths: (1) developing runnable programs, and proving properties about them, or (2) developing theorems just to prove them; essentially doing mathematics with machine-checked proofs. Idris has positioned itself for the former with Roq/Lean/Agda purpose-built for the latter. For me, looking into Idris would be a next step--at least just to see what real programs are being built using this newfound knowledge.
 
 As a reference, the [little_typer_dialog.pie](little_typer_dialog.pie) is the code (most of it) the book uses to teach you this new language. Below are the notes by chapter(s):
-
-1. [Chapters 1-2: Getting Definitions Down](#chapters-1-2-getting-definitions-down)
-1. [Chapter 3: What is a Proof, What is a Value](#chapter-3-what-is-a-proof-what-is-a-value)
-1. [Chapter 4: ->'s Stronger Brother Pi](#chapter-4--s-stronger-brother-pi)
-1. [Chapters 5-6: Lists and Vectors](#chapters-5-6-lists-and-vectors)
-1. [Chapter 7: ind-Nat is a Dependent rec-Nat](#chapter-7-ind-nat-is-a-dependent-rec-nat)
-1. [Chapters 8-9: Proving Properties About Programs](#chapters-8-9-proving-properties-about-programs)
-1. [Chapters 10-11: Induction on Lists and Vecs](#chapters-10-11-induction-on-lists-and-vecs)
-1. [Chapters 12-13: Even and Odd](#chapters-12-13-even-and-odd)
-1. [Chapter 14: The Absurd Type](#chapter-14-the-absurd-type)
-1. [Chapters 15-16: CL = IL + DNE](#chapters-15-16-cl--il--dne)
 
 # Chapters 1-2: Getting Definitions Down
 

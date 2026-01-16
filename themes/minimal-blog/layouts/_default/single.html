@@ -17,8 +17,30 @@
         <p class="post-title">{{ .Title }}</p>
       {{ end }}
     </header>
-    <div>
-      {{ .Content }}
-    </div>
+    {{ if .Params.toc_sidebar }}
+      <div class="note-layout">
+        <aside class="note-toc" id="table-of-contents">
+          <p class="note-toc-title">table of contents</p>
+          {{ with .Params.custom_toc }}
+            <nav class="note-toc-custom">
+              {{ range (split . "\n") }}
+                {{ if ne . "" }}
+                  <div class="note-toc-item">{{ . | markdownify }}</div>
+                {{ end }}
+              {{ end }}
+            </nav>
+          {{ else }}
+            {{ .TableOfContents }}
+          {{ end }}
+        </aside>
+        <div class="note-body">
+          {{ .Content }}
+        </div>
+      </div>
+    {{ else }}
+      <div>
+        {{ .Content }}
+      </div>
+    {{ end }}
   </article>
 {{ end }}

@@ -5,7 +5,7 @@ theme = 'minimal-blog'
 
 [params]
 copyrightedBy = 'Charles Conroy'
-lead = 'programming & other things'
+lead = 'mostly programmings'
 alternateTitle = "home"
 
 [pagination]

@@ -5,7 +5,7 @@
   --accent: #ad4a00;
   --link: #c85e0b;
   --border: #e5dfd5;
-  --max-width: 62ch;
+  --max-width: 97ch;
   --side-pad: clamp(1.5rem, 4vw, 3rem);
   font-family: "Palatino", "Book Antiqua", Georgia, "Times New Roman", serif;
 }
@@ -428,6 +428,56 @@ article header {
   margin-bottom: 1.5rem;
 }
 
+.note-layout {
+  --toc-width: clamp(13rem, 21vw, 17rem);
+  --note-gap: 1.5rem;
+  --note-content-min: 72ch;
+  display: grid;
+  grid-template-columns: var(--toc-width) minmax(var(--note-content-min), 1fr);
+  gap: var(--note-gap);
+  align-items: start;
+}
+
+.note-toc {
+  position: sticky;
+  top: 1.5rem;
+  align-self: start;
+  border-right: 1px solid var(--border);
+  padding-right: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.note-toc-title {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.note-toc-custom {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.note-toc-item p {
+  margin: 0;
+}
+
+.note-toc nav ul {
+  list-style: decimal;
+  padding-left: 1.2rem;
+  margin: 0;
+}
+
+.note-toc nav li {
+  margin: 0.35rem 0;
+}
+
+.note-body {
+  min-width: 0;
+}
+
 @media (max-width: 720px) {
   :root {
     --side-pad: 1.25rem;
@@ -490,5 +540,20 @@ article header {
     float: none;
     margin: 0 0 1rem 0;
     max-width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .note-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .note-toc {
+    position: static;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding-right: 0;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
   }
 }

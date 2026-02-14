@@ -433,7 +433,8 @@ article header {
   --note-gap: 1.5rem;
   --note-content-min: 72ch;
   display: grid;
-  grid-template-columns: var(--toc-width) minmax(var(--note-content-min), 1fr);
+  grid-template-columns: var(--toc-width) minmax(0, var(--note-content-min));
+  justify-content: center;
   gap: var(--note-gap);
   align-items: start;
 }
@@ -476,6 +477,26 @@ article header {
 
 .note-body {
   min-width: 0;
+}
+
+article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2rem 0;
+  font-size: 0.95rem;
+}
+
+article th,
+article td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+
+article thead th {
+  color: var(--muted);
+  font-weight: 600;
 }
 
 @media (max-width: 720px) {
@@ -535,17 +556,43 @@ article header {
   font-size: inherit;
 }
 
+.note-center {
+  margin: 1.2rem auto;
+  text-align: center;
+  max-width: 100%;
+}
+
+.note-center img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+.note-center figcaption {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.note-center figcaption p {
+  margin: 0;
+}
+
 @media (max-width: 720px) {
   .note-right {
     float: none;
     margin: 0 0 1rem 0;
     max-width: 100%;
   }
+
 }
 
 @media (max-width: 900px) {
   .note-layout {
     grid-template-columns: 1fr;
+    justify-content: stretch;
   }
 
   .note-toc {

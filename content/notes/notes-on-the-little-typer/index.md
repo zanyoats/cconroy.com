@@ -5,7 +5,8 @@ title = 'chapter notes for the little typer'
 summary = 'These notes serve as an addendum to each chapter. I wish I had these notes alongside each chapter while working through the book.'
 tags = ['programming', 'types', 'books']
 toc_sidebar = true
-custom_toc = """[review](#review)
+custom_toc = """contents
+[review](#review)
 [getting definitions down](#chapters-1-2-getting-definitions-down)
 [what is a proof, what is a value](#chapter-3-what-is-a-proof-what-is-a-value)
 [->'s stronger brother pi](#chapter-4--s-stronger-brother-pi)
@@ -15,7 +16,10 @@ custom_toc = """[review](#review)
 [induction on lists and vecs](#chapters-10-11-induction-on-lists-and-vecs)
 [even and odd](#chapters-12-13-even-and-odd)
 [the absurd type](#chapter-14-the-absurd-type)
-[cl = il + dne](#chapters-15-16-cl--il--dne)"""
+[cl = il + dne](#chapters-15-16-cl--il--dne)
+files
+[little_typer_dialog.pie](little_typer_dialog.pie)
+[add.pie](add.pie)"""
 +++
 
 # review

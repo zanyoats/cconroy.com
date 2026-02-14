@@ -1,6 +1,7 @@
 # Hugo build output
 public/
 resources/
+.hugo-debug/
 hugo_stats.json
 
 # Hugo cache/lock

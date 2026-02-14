@@ -19,8 +19,7 @@
     </header>
     {{ if .Params.toc_sidebar }}
       <div class="note-layout">
-        <aside class="note-toc" id="table-of-contents">
-          <p class="note-toc-title">table of contents</p>
+        <aside class="note-toc note-toc-title" id="table-of-contents">
           {{ with .Params.custom_toc }}
             <nav class="note-toc-custom">
               {{ range (split . "\n") }}

@@ -1,6 +1,6 @@
 baseURL = 'https://cconroy.com/'
 languageCode = 'en-us'
-title = 'cconroy.com | home'
+title = 'cconroy.com'
 theme = 'minimal-blog'
 
 [params]

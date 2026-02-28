@@ -8,8 +8,8 @@ echo "user-data start: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 # enables sudo for the wheel group (uncommenting the appropriate line in /etc/sudoers), and installs your public key for SSH.
 
 
-# Install sudo and openssh
-apk add --no-cache sudo ufw openssh rsync curl ca-certificates acl shadow
+# Install core services and cert tooling.
+apk add --no-cache sudo ufw openssh rsync curl ca-certificates acl shadow certbot
 
 # Set username (defaults to "charlie" if no argument is provided)
 USER_NAME=${1:-charlie}
@@ -76,10 +76,83 @@ chmod -R g+w /usr/share/nginx/html
 
 SITE_CONF_B64="__SITE_CONF_B64__"
 mkdir -p /etc/nginx/conf.d
-printf '%s' "${SITE_CONF_B64}" | base64 -d > /etc/nginx/conf.d/default.conf
+SITE_CONF_TEMPLATE="/etc/nginx/site.conf.template"
+printf '%s' "${SITE_CONF_B64}" | base64 -d > "${SITE_CONF_TEMPLATE}"
+SERVER_NAMES="$(awk '
+  /^[[:space:]]*server_name[[:space:]]+/ {
+    for (i = 2; i <= NF; i++) {
+      gsub(/;/, "", $i)
+      if ($i != "") print $i
+    }
+  }
+' "${SITE_CONF_TEMPLATE}" | awk '!seen[$0]++' | xargs)"
+
+if [ -z "${SERVER_NAMES}" ]; then
+  SERVER_NAMES="_"
+fi
+
+cat > /etc/nginx/conf.d/default.conf <<EOF
+server {
+    listen 80;
+    server_name ${SERVER_NAMES};
+
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /usr/share/nginx/html;
+        default_type "text/plain";
+        allow all;
+    }
+
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOF
 
 rc-service nginx start
-
 rc-update add nginx default
+
+if [ "${SERVER_NAMES}" != "_" ]; then
+  DOMAIN_FLAGS=""
+  for domain in ${SERVER_NAMES}; do
+    DOMAIN_FLAGS="${DOMAIN_FLAGS} -d ${domain}"
+  done
+
+  # shellcheck disable=SC2086
+  if certbot certonly --webroot -w /usr/share/nginx/html ${DOMAIN_FLAGS} \
+    --non-interactive \
+    --agree-tos \
+    --register-unsafely-without-email \
+    --keep-until-expiring; then
+    cp "${SITE_CONF_TEMPLATE}" /etc/nginx/conf.d/default.conf
+    nginx -t
+    rc-service nginx reload
+
+    cat > /usr/local/bin/renew-certs.sh <<'EOF'
+#!/bin/sh
+set -eu
+certbot renew --quiet --deploy-hook "rc-service nginx reload"
+EOF
+    chmod 755 /usr/local/bin/renew-certs.sh
+
+    if [ ! -f /etc/crontabs/root ]; then
+      touch /etc/crontabs/root
+    fi
+    if ! grep -Fq "/usr/local/bin/renew-certs.sh" /etc/crontabs/root; then
+      echo "19 3 * * * /usr/local/bin/renew-certs.sh >> /var/log/certbot-renew.log 2>&1" >> /etc/crontabs/root
+    fi
+    rc-service crond start
+    rc-update add crond default
+
+    echo "HTTPS configured and renewal enabled."
+  else
+    echo "Initial cert request failed. Point DNS to this server and rerun:"
+    echo "certbot certonly --webroot -w /usr/share/nginx/html ${DOMAIN_FLAGS} --non-interactive --agree-tos --register-unsafely-without-email --keep-until-expiring"
+  fi
+else
+  echo "No server_name domains found in ${SITE_CONF_TEMPLATE}; skipping certificate setup."
+fi
 
 echo "user-data ok: $(date -u +%Y-%m-%dT%H:%M:%SZ)" > /var/log/user-data.ok

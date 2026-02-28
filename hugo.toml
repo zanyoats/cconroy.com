@@ -1,4 +1,4 @@
-baseURL = 'http://cconroy.com/'
+baseURL = 'https://cconroy.com/'
 languageCode = 'en-us'
 title = 'cconroy.com | home'
 theme = 'minimal-blog'

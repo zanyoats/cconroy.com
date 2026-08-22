@@ -53,7 +53,8 @@
     --border-strong: oklch(86.866% 0.00423 55.608); /* stone-300 */
 
     --focus-ring: var(--accent);
-    --max-width: 105ch;
+    /* Keep the centered page frame stable while the web font loads. */
+    --max-width: 52.5rem;
 
     --heading:
         "Century Gothic", Futura, "Avenir Next", ui-rounded, system-ui,

@@ -5,3 +5,9 @@ import registerTheme from "./theme.js";
 up.history.config.restoreTargets = ["[up-main]"];
 
 registerTheme(up);
+
+if (document.readyState === "complete") {
+    up.boot();
+} else {
+    window.addEventListener("load", () => up.boot(), { once: true });
+}

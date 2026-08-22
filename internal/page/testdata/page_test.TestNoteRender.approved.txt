@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script>
+            try {
+                const theme = localStorage.getItem("theme");
+
+                if (theme === "light" || theme === "dark") {
+                    document.documentElement.dataset.theme = theme;
+                }
+            } catch {
+                
+            }
+        </script>
+        <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+        <link rel="stylesheet" href="/assets/unpoly.min.css" />
+        <link rel="stylesheet" href="/assets/styles.css" />
+        <script type="module" src="/assets/app.js"></script>
+        <title>mostly programmings / Sunt Lorem culpa ipsum duis.</title>
+    </head>
+    <body>
+        
+<svg class="icon-sprite" aria-hidden="true">
+    <symbol id="icon-feed" viewBox="0 0 24 24">
+        <circle cx="4" cy="20" r="2.2" fill="currentColor" />
+
+        <path
+            d="M4 11A9 9 0 0 1 13 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+        />
+
+        <path
+            d="M4 4A16 16 0 0 1 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+        />
+    </symbol>
+
+    <symbol id="icon-sun" viewBox="0 0 24 24">
+        <g
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+        >
+            <circle cx="12" cy="12" r="4.25" />
+
+            <path d="M12 2.25v2.5" />
+            <path d="M12 19.25v2.5" />
+            <path d="M2.25 12h2.5" />
+            <path d="M19.25 12h2.5" />
+
+            <path d="m5.1 5.1 1.75 1.75" />
+            <path d="m17.15 17.15 1.75 1.75" />
+            <path d="m18.9 5.1-1.75 1.75" />
+            <path d="m6.85 17.15-1.75 1.75" />
+        </g>
+    </symbol>
+
+    <symbol id="icon-moon" viewBox="0 0 24 24">
+        <g
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <path d="M13.75 3.1a8.9 8.9 0 1 0 7.15 13.15 7.35 7.35 0 0 1-7.15-13.15Z" />
+
+            <path
+                d="m18.5 2.75.55 1.35 1.35.55-1.35.55-.55 1.35-.55-1.35-1.35-.55 1.35-.55Z"
+                fill="currentColor"
+                stroke="none"
+            />
+
+            <path
+                d="m15.65 7.25.35.85.85.35-.85.35-.35.85-.35-.85-.85-.35.85-.35Z"
+                fill="currentColor"
+                stroke="none"
+            />
+        </g>
+    </symbol>
+</svg>
+
+        
+    <header class="top-nav">
+        <nav>
+            <a href="/" up-follow>mostly programmings</a>
+        </nav>
+        <button
+            type="button"
+            data-theme-toggle
+            aria-pressed="false"
+            aria-label="Switch to dark theme"
+        >
+            <svg
+                width="24"
+                height="24"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <use data-theme-icon href="#icon-moon"></use>
+            </svg>
+        </button>
+    </header>
+
+        <main up-main>
+    <div class="article-shell">
+        <article>
+            <header class="article-meta">
+                <h1>Sunt Lorem culpa ipsum duis.</h1>
+                <time datetime="2025-12-25">
+                    2025 Dec 25
+                </time>
+                <ul class="tags">
+                    
+                        <li><a href="/tags/Foo/" up-follow>#Foo</a></li>
+                    
+                        <li><a href="/tags/Bar/" up-follow>#Bar</a></li>
+                    
+                        <li><a href="/tags/Baz/" up-follow>#Baz</a></li>
+                    
+                </ul>
+            </header>
+
+            <div class="prose">
+                <div>hello, world</div>
+            </div>
+
+            <small class="lastmod">Last modified 2026-08-17 12:00:00Z</small>
+        </article>
+
+        
+            <aside class="toc">
+                <nav aria-label="On this page">
+                    
+    <ol class="toc-list">
+        
+            <li>
+                <a href="#foo">Foo</a>
+
+                
+                    
+    <ol class="toc-list">
+        
+            <li>
+                <a href="#bar">Bar</a>
+
+                
+            </li>
+        
+    </ol>
+
+                
+            </li>
+        
+    </ol>
+
+                </nav>
+            </aside>
+        
+    </div>
+</main>
+        
+    <footer></footer>
+
+    </body>
+</html>

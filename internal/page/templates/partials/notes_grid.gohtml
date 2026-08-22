@@ -1,0 +1,32 @@
+{{define "notes-grid"}}
+    <section class="notes-by-year">
+        {{range .NoteGroups}}
+            <section class="year-section">
+                <h2><time datetime="{{.Year}}">{{.Year}}</time></h2>
+
+                <ul class="note-list">
+                    {{ range .Notes }}
+                        <li>
+                            <article>
+                                <h3><a href="{{noteURL .Slug}}" up-follow>{{.Title}}</a></h3>
+                                <div class="note-meta">
+                                    <time datetime="{{.Date.Format "2006-01-02"}}">
+                                        {{.Date.Format "Jan 2"}}
+                                    </time>
+                                    <ul class="tags">
+                                        {{range .Tags}}
+                                            <li><a href="{{tagURL .}}" up-follow>#{{.}}</a></li>
+                                        {{end}}
+                                    </ul>
+                                </div>
+                                <p>{{.Short}}</p>
+                            </article>
+                        </li>
+                    {{ end }}
+                </ul>
+            </section>
+        {{else}}
+            <p>No notes yet.</p>
+        {{end}}
+    </section>
+{{end}}

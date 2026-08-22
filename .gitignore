@@ -1,15 +1,11 @@
-# Hugo build output
-public/
-resources/
-.hugo-debug/
-hugo_stats.json
-
-# Hugo cache/lock
-.hugo_build.lock
-
-# Dependency/build artifacts
-node_modules/
-*.log
+/web
+/dist/
+coverage.out
+*.test
+*.db
+*.db-shm
+*.db-wal
+.approval_tests_temp/
 
 # OS/editor noise
 .DS_Store

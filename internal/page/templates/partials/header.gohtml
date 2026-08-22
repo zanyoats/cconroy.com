@@ -1,0 +1,22 @@
+{{define "header"}}
+    <header class="top-nav">
+        <nav>
+            <a href="{{homeURL}}" up-follow>mostly programmings</a>
+        </nav>
+        <button
+            type="button"
+            data-theme-toggle
+            aria-pressed="false"
+            aria-label="Switch to dark theme"
+        >
+            <svg
+                width="24"
+                height="24"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <use data-theme-icon href="#icon-moon"></use>
+            </svg>
+        </button>
+    </header>
+{{ end }}

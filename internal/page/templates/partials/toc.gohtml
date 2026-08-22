@@ -1,0 +1,13 @@
+{{define "toc-list"}}
+    <ol class="toc-list">
+        {{range .}}
+            <li>
+                <a href="#{{.Id}}">{{.Text}}</a>
+
+                {{with .Children}}
+                    {{template "toc-list" .}}
+                {{end}}
+            </li>
+        {{end}}
+    </ol>
+{{end}}

@@ -1,0 +1,19 @@
+{{define "title"}}mostly programmings{{end}}
+{{define "main"}}
+    <section class="page-heading with-rss">
+        <h1>Notes</h1>
+
+        <a class="rss-button" href="{{feedURL}}" aria-label="Subscribe via RSS">
+            <svg
+                width="12"
+                height="12"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <use href="#icon-feed"></use>
+            </svg>
+        </a>
+    </section>
+
+    {{template "notes-grid" .}}
+{{end}}

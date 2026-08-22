@@ -1,0 +1,32 @@
+{{define "title"}}mostly programmings / {{.Title}}{{ end }}
+{{define "main"}}
+    <div class="article-shell">
+        <article>
+            <header class="article-meta">
+                <h1>{{.Title}}</h1>
+                <time datetime="{{.Date.Format "2006-01-02"}}">
+                    {{.Date.Format "2006 Jan 2"}}
+                </time>
+                <ul class="tags">
+                    {{range .Tags}}
+                        <li><a href="{{tagURL .}}" up-follow>#{{.}}</a></li>
+                    {{end}}
+                </ul>
+            </header>
+
+            <div class="prose">
+                {{.BodyHTML}}
+            </div>
+
+            <small class="lastmod">Last modified {{.UpdatedAt.Format "2006-01-02 15:04:05Z07:00"}}</small>
+        </article>
+
+        {{with .TOC}}
+            <aside class="toc">
+                <nav aria-label="On this page">
+                    {{template "toc-list" .}}
+                </nav>
+            </aside>
+        {{end}}
+    </div>
+{{end}}

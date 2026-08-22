@@ -1,0 +1,23 @@
+#!/sbin/openrc-run
+
+name="cconroy.com"
+description="cconroy.com Go web server"
+
+command="/opt/cconroy/current/cconroy-linux-amd64"
+command_args="--notes-path /opt/cconroy/current/data/notes"
+command_user="cconroy:cconroy"
+directory="/opt/cconroy/current"
+
+supervisor="supervise-daemon"
+respawn_delay=5
+respawn_max=0
+
+output_log="/var/log/cconroy.log"
+error_log="/var/log/cconroy.err"
+
+export HOME="/var/lib/cconroy"
+
+depend() {
+    need net
+    after firewall
+}

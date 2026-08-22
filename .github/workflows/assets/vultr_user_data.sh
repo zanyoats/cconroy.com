@@ -9,7 +9,7 @@ echo "user-data start: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 
 # Install core services and cert tooling.
-apk add --no-cache sudo ufw openssh rsync curl ca-certificates acl shadow certbot
+apk add --no-cache sudo ufw openssh rsync curl git ca-certificates acl shadow certbot
 
 # Set username (defaults to "charlie" if no argument is provided)
 USER_NAME=${1:-charlie}

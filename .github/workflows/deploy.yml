@@ -1,71 +1,242 @@
-name: Deploy Hugo to Vultr
+name: Release and deploy Go app
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
+    tags:
+      - "v*.*.*"
 
 concurrency:
-  group: deploy-hugo
-  cancel-in-progress: true
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  release:
+    name: Build Alpine binary and create release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Validate release tag
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tags must use semantic versioning, for example v1.0.0."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test and build with Alpine
+        run: |
+          set -euo pipefail
+
+          GO_VERSION="$(awk '$1 == "go" { print $2 }' go.mod)"
+          if [ -z "${GO_VERSION}" ]; then
+            echo "Could not determine the Go version from go.mod."
+            exit 1
+          fi
+
+          mkdir -p dist
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:/src" \
+            --workdir /src \
+            "golang:${GO_VERSION}-alpine" \
+            sh -euc '
+              apk add --no-cache build-base
+              go test ./...
+              CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
+                go build -trimpath \
+                -ldflags="-s -w -linkmode external -extldflags=-static" \
+                -o dist/cconroy-linux-amd64 ./cmd/web
+              /src/dist/cconroy-linux-amd64 --help
+            '
+
+          file dist/cconroy-linux-amd64
+          if ! file dist/cconroy-linux-amd64 | grep -q "statically linked"; then
+            echo "The release binary is not statically linked for Alpine."
+            exit 1
+          fi
+          (cd dist && sha256sum cconroy-linux-amd64 > cconroy-linux-amd64.sha256)
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" \
+              dist/cconroy-linux-amd64 \
+              dist/cconroy-linux-amd64.sha256 \
+              --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              dist/cconroy-linux-amd64 \
+              dist/cconroy-linux-amd64.sha256 \
+              --verify-tag \
+              --title "${GITHUB_REF_NAME}" \
+              --generate-notes
+          fi
+
+  deploy:
+    name: Deploy release to Vultr
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
       DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
       DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
     steps:
-      - name: Checkout repo
+      - name: Checkout deployment configuration
         uses: actions/checkout@v4
 
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
-        with:
-          hugo-version: latest
-          extended: true
-
-      - name: Build site
-        run: hugo --minify
-
-      - name: Deploy via rsync
+      - name: Configure SSH
         run: |
           set -euo pipefail
 
           if [ -z "${DEPLOY_USER}" ] || [ -z "${DEPLOY_HOST}" ] || [ -z "${DEPLOY_KEY}" ]; then
-            echo "Missing required deploy secrets. Please set DEPLOY_USER, DEPLOY_HOST, and DEPLOY_KEY."
+            echo "Missing DEPLOY_USER, DEPLOY_HOST, or DEPLOY_KEY."
             exit 1
           fi
 
           SSH_PORT="${DEPLOY_PORT:-22}"
-          TARGET_PATH="${DEPLOY_PATH:-/usr/share/nginx/html}"
-          SSH_OPTS="-4 -p ${SSH_PORT} -o StrictHostKeyChecking=accept-new"
-
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           printf '%s\n' "${DEPLOY_KEY}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # Reachability check before keyscan to surface firewall/port issues early.
           if ! nc -4 -z -w 5 "${DEPLOY_HOST}" "${SSH_PORT}"; then
-            echo "Cannot reach ${DEPLOY_HOST}:${SSH_PORT} from runner (firewall/port?)."
+            echo "Cannot reach ${DEPLOY_HOST}:${SSH_PORT}."
             exit 1
           fi
 
-          if ! ssh-keyscan -4 -T 15 -p "${SSH_PORT}" -- "${DEPLOY_HOST}" >> ~/.ssh/known_hosts; then
-            echo "ssh-keyscan failed. Check DEPLOY_HOST/DEPLOY_PORT, firewall, and SSH service."
+          ssh-keyscan -4 -T 15 -p "${SSH_PORT}" -- "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy and restart application
+        run: |
+          set -euo pipefail
+
+          SSH_PORT="${DEPLOY_PORT:-22}"
+          SSH_TARGET="${DEPLOY_USER}@${DEPLOY_HOST}"
+          SSH_OPTIONS=(-4 -p "${SSH_PORT}" -o BatchMode=yes -o StrictHostKeyChecking=yes)
+
+          scp -4 -P "${SSH_PORT}" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            .github/workflows/assets/cconroy.initd \
+            "${SSH_TARGET}:/tmp/cconroy.initd"
+          scp -4 -P "${SSH_PORT}" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            .github/workflows/assets/site.conf \
+            "${SSH_TARGET}:/tmp/cconroy-site.conf"
+
+          ssh "${SSH_OPTIONS[@]}" "${SSH_TARGET}" \
+            "sh -s -- '${GITHUB_REF_NAME}' '${GITHUB_REPOSITORY}' '${GITHUB_RUN_ID}' '${GITHUB_RUN_ATTEMPT}'" <<'REMOTE'
+          set -eu
+
+          RELEASE_TAG="$1"
+          REPOSITORY="$2"
+          RUN_ID="$3"
+          RUN_ATTEMPT="$4"
+          APP_ROOT="/opt/cconroy"
+          APP_USER="cconroy"
+          ASSET_NAME="cconroy-linux-amd64"
+          DEPLOYMENT_ID="${RELEASE_TAG}-${RUN_ID}-${RUN_ATTEMPT}"
+          RELEASE_DIR="${APP_ROOT}/releases/${DEPLOYMENT_ID}"
+          RELEASE_URL="https://github.com/${REPOSITORY}/releases/download/${RELEASE_TAG}"
+
+          if ! printf '%s\n' "${RELEASE_TAG}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Invalid release tag: ${RELEASE_TAG}"
             exit 1
           fi
 
-          if ! ssh ${SSH_OPTS} "${DEPLOY_USER}@${DEPLOY_HOST}" "test -d '${TARGET_PATH}' && test -w '${TARGET_PATH}'"; then
-            echo "Cannot write to ${TARGET_PATH} as ${DEPLOY_USER}. Fix permissions or set DEPLOY_PATH."
+          sudo apk add --no-cache ca-certificates curl git
+
+          if ! id "${APP_USER}" >/dev/null 2>&1; then
+            sudo adduser -S -D -h "/var/lib/${APP_USER}" -s /sbin/nologin "${APP_USER}"
+          fi
+
+          sudo install -d -o "${APP_USER}" -g "${APP_USER}" "/var/lib/${APP_USER}"
+          sudo install -d -o root -g root "${APP_ROOT}" "${APP_ROOT}/releases"
+          sudo touch /var/log/cconroy.log /var/log/cconroy.err
+          sudo chown "${APP_USER}:${APP_USER}" /var/log/cconroy.log /var/log/cconroy.err
+
+          WORK_DIR="$(mktemp -d)"
+          trap 'rm -rf "${WORK_DIR}"' EXIT
+
+          curl --fail --location --retry 3 \
+            --output "${WORK_DIR}/${ASSET_NAME}" \
+            "${RELEASE_URL}/${ASSET_NAME}"
+          curl --fail --location --retry 3 \
+            --output "${WORK_DIR}/${ASSET_NAME}.sha256" \
+            "${RELEASE_URL}/${ASSET_NAME}.sha256"
+          (
+            cd "${WORK_DIR}"
+            sha256sum -c "${ASSET_NAME}.sha256"
+          )
+
+          git clone \
+            --depth 1 \
+            --filter=blob:none \
+            --sparse \
+            --branch "${RELEASE_TAG}" \
+            "https://github.com/${REPOSITORY}.git" \
+            "${WORK_DIR}/source"
+          git -C "${WORK_DIR}/source" sparse-checkout set data/notes
+
+          sudo install -d -o "${APP_USER}" -g "${APP_USER}" "${RELEASE_DIR}/data"
+          sudo install -m 0755 -o "${APP_USER}" -g "${APP_USER}" \
+            "${WORK_DIR}/${ASSET_NAME}" "${RELEASE_DIR}/${ASSET_NAME}"
+          sudo cp -R "${WORK_DIR}/source/data/notes" "${RELEASE_DIR}/data/notes"
+          sudo chown -R "${APP_USER}:${APP_USER}" "${RELEASE_DIR}/data"
+
+          sudo install -m 0755 /tmp/cconroy.initd /etc/init.d/cconroy
+          sudo rc-update add cconroy default
+
+          PREVIOUS_TARGET="$(readlink "${APP_ROOT}/current" 2>/dev/null || true)"
+          sudo ln -sfn "${RELEASE_DIR}" "${APP_ROOT}/current"
+
+          if sudo rc-service cconroy status >/dev/null 2>&1; then
+            sudo rc-service cconroy restart
+          else
+            sudo rc-service cconroy start
+          fi
+
+          HEALTHY=0
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null; then
+              HEALTHY=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "${HEALTHY}" -ne 1 ]; then
+            echo "Application health check failed."
+            if [ -n "${PREVIOUS_TARGET}" ]; then
+              sudo ln -sfn "${PREVIOUS_TARGET}" "${APP_ROOT}/current"
+              sudo rc-service cconroy restart
+              echo "Rolled back to ${PREVIOUS_TARGET}."
+            else
+              sudo rc-service cconroy stop || true
+            fi
             exit 1
           fi
 
-          rsync -rlvz --delete --omit-dir-times --no-owner --no-group -e "ssh ${SSH_OPTS}" public/ "${DEPLOY_USER}@${DEPLOY_HOST}:${TARGET_PATH}"
+          if [ -f /etc/nginx/conf.d/default.conf ]; then
+            sudo cp /etc/nginx/conf.d/default.conf /tmp/cconroy-nginx.conf.previous
+          fi
+          sudo install -m 0644 /tmp/cconroy-site.conf /etc/nginx/conf.d/default.conf
+          if sudo nginx -t; then
+            sudo rc-service nginx reload
+            sudo rm -f /tmp/cconroy-nginx.conf.previous
+          else
+            if [ -f /tmp/cconroy-nginx.conf.previous ]; then
+              sudo mv /tmp/cconroy-nginx.conf.previous /etc/nginx/conf.d/default.conf
+            fi
+            echo "nginx configuration validation failed; restored the previous configuration."
+            exit 1
+          fi
+
+          echo "Deployed ${RELEASE_TAG} from ${REPOSITORY}."
+          REMOTE

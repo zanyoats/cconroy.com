@@ -150,10 +150,22 @@ jobs:
             exit 1
           fi
 
-          sudo apk add --no-cache ca-certificates curl git
+          sudo apk add --no-cache ca-certificates curl git shadow
+
+          if ! getent group "${APP_USER}" >/dev/null 2>&1; then
+            sudo addgroup -S "${APP_USER}"
+          fi
 
           if ! id "${APP_USER}" >/dev/null 2>&1; then
-            sudo adduser -S -D -h "/var/lib/${APP_USER}" -s /sbin/nologin "${APP_USER}"
+            sudo adduser -S -D \
+              -h "/var/lib/${APP_USER}" \
+              -s /sbin/nologin \
+              -G "${APP_USER}" \
+              "${APP_USER}"
+          else
+            # Repair users created by an earlier deployment before the
+            # same-named system group was explicitly created.
+            sudo usermod -g "${APP_USER}" "${APP_USER}"
           fi
 
           sudo install -d -o "${APP_USER}" -g "${APP_USER}" "/var/lib/${APP_USER}"

@@ -333,7 +333,7 @@ time {
 
     @media (width >= 64rem) {
         &:has(> aside) {
-            grid-template-columns: minmax(0, 1fr) 45ch;
+            grid-template-columns: minmax(0, 1fr) 22.5rem;
         }
 
         > aside {
@@ -385,7 +385,7 @@ time {
     line-height: 1.3;
 
     @media (width >= 37.5rem) {
-        grid-template-columns: 6ch minmax(0, 1fr);
+        grid-template-columns: 3rem minmax(0, 1fr);
         align-items: first baseline;
     }
 

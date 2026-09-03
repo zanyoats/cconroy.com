@@ -54,7 +54,7 @@
 
     --focus-ring: var(--accent);
     /* Keep the centered page frame stable while the web font loads. */
-    --max-width: 52.5rem;
+    --max-width: 60.5rem;
 
     --heading:
         "Century Gothic", Futura, "Avenir Next", ui-rounded, system-ui,
